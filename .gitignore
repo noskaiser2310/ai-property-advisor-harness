@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# Database & Temporary Dumps
+*.sqlite
+*.db
+database/temp/
+database/*.db
+temp/
+tmp/
+.tmp/
+scripts
+# Logs & Metrics
+*.log
+logs/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Generated Documents & Artifacts
+*.docx
+.system_generated/
+scratch/
+
+# Docker
+.dockerignore

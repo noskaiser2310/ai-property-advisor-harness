@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Property Advisor — Enterprise Financial Copilot Workspace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+:root {
+  --bg: #080B13;
+  --sidebar-bg: #0E1220;
+  --card-bg: rgba(20, 26, 42, 0.75);
+  --card-solid: #131828;
+  --card-hover: #1C233A;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-active: rgba(99, 102, 241, 0.45);
+  --text: #F8FAFC;
+  --text-muted: #94A3B8;
+  --text-dim: #64748B;
+  --primary: #6366F1;
+  --primary-hover: #4F46E5;
+  --purple: #8B5CF6;
+  --green: #10B981;
+  --green-glow: rgba(16, 185, 129, 0.15);
+  --yellow: #F59E0B;
+  --orange: #F97316;
+  --red: #EF4444;
+  --blue: #3B82F6;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.65);
+  --shadow-glow: 0 0 24px rgba(99, 102, 241, 0.25);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, .value, .brand-title, .metric-value, .card-title {
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.3px;
+}
+
+/* APP LAYOUT ARCHITECTURE */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100vw;
+}
+
+/* 1. LEFT VERTICAL SIDEBAR (250px) */
+.app-sidebar {
+  width: 250px;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px 18px;
+  flex-shrink: 0;
+  position: fixed;
+  top: 0; bottom: 0; left: 0;
+  z-index: 90;
+}
+
+.brand-section {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.brand-title {
+  font-size: 21px;
+  font-weight: 800;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -0.5px;
+}
+.brand-title span { color: var(--primary); }
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green);
+}
+.pulse-dot-green {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: dotPulse 1.5s infinite;
+}
+
+/* Sidebar Navigation */
+.nav-group-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-dim);
+  margin: 10px 10px 10px;
+}
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+.nav-item:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+}
+.nav-item.active {
+  color: #fff;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(139, 92, 246, 0.25));
+  border-color: rgba(99, 102, 241, 0.45);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.2);
+}
+.nav-item .icon { font-size: 18px; }
+
+/* Sidebar Bottom Promo Card */
+.sidebar-promo {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(139, 92, 246, 0.1));
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-top: auto;
+}
+.sidebar-promo h4 { font-size: 13.5px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.sidebar-promo p { font-size: 11.5px; color: var(--text-muted); line-height: 1.45; margin-bottom: 14px; }
+.sidebar-promo-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary), var(--purple));
+  border: none;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+.sidebar-promo-btn:hover { opacity: 0.95; transform: translateY(-1px); }
+
+/* 2. MAIN WORKSPACE CONTAINER */
+.app-main {
+  flex: 1;
+  margin-left: 250px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Top Executive Header */
+.top-header {
+  background: rgba(14, 18, 32, 0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 18px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 80;
+}
+.header-title-box h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.header-title-box p {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header-select, .header-btn {
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--card-solid);
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.header-select:hover, .header-btn:hover { border-color: var(--primary); }
+.header-btn.primary {
+  background: linear-gradient(135deg, var(--primary), var(--purple));
+  border: none;
+  color: #fff;
+}
+.header-btn.primary:hover { opacity: 0.95; transform: translateY(-1px); }
+
+/* Main Content Workspace Padding */
+.workspace-body {
+  padding: 24px 32px;
+  flex: 1;
+}
+
+/* 3. DEDICATED AI COPILOT WORKSPACE (#tab-copilot) - FULL WIDTH CANVAS */
+.copilot-workspace {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 140px);
+  width: 100%;
+}
+
+/* Full Width Chat Workspace Panel */
+.copilot-main-panel {
+  background: var(--card-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+/* Top 1-Touch Suggested Prompts Toolbar */
+.suggested-prompts-toolbar {
+  padding: 12px 24px;
+  background: rgba(15, 20, 35, 0.95);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.suggested-prompts-toolbar .title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.chip-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.chip-btn:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* Chat Messages Feed */
+.copilot-feed {
+  flex: 1;
+  padding: 28px 32px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Message Bubble Styling */
+.copilot-bubble {
+  display: flex;
+  gap: 16px;
+  max-width: 88%;
+  animation: fadeIn 0.3s ease;
+}
+.copilot-bubble.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+.copilot-bubble.ai {
+  align-self: flex-start;
+}
+
+.avatar {
+  width: 38px; height: 38px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
+  flex-shrink: 0;
+}
+.avatar.user-av { background: linear-gradient(135deg, #3B82F6, #1D4ED8); color: #fff; }
+.avatar.ai-av { background: linear-gradient(135deg, var(--primary), var(--purple)); color: #fff; box-shadow: 0 0 14px rgba(99, 102, 241, 0.35); }
+
+.bubble-content {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 22px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text);
+  position: relative;
+}
+.copilot-bubble.user .bubble-content {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(139, 92, 246, 0.16));
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.msg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 11.5px;
+  color: var(--text-dim);
+}
+.msg-header .name { font-weight: 700; color: #fff; }
+.msg-status-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 12px;
+  background: rgba(16, 185, 129, 0.12); color: var(--green);
+  font-size: 11px; font-weight: 600;
+}
+
+/* Message Actions Toolbar */
+.copilot-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.action-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.action-btn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; border-color: var(--primary); }
+
+/* Bottom Copilot Input Area */
+.copilot-input-area {
+  padding: 20px 24px;
+  background: rgba(15, 19, 34, 0.95);
+  border-top: 1px solid var(--border);
+}
+.input-box-wrapper {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  transition: border-color 0.2s;
+}
+.input-box-wrapper:focus-within {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-glow);
+}
+.input-box-wrapper textarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 14px;
+  font-family: inherit;
+  resize: none;
+  min-height: 48px;
+}
+
+.input-sub-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+.input-tools { display: flex; gap: 8px; }
+.tool-icon-btn {
+  padding: 6px 12px; border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border);
+  color: var(--text-muted); font-size: 12px; font-weight: 600;
+  font-family: inherit; cursor: pointer; transition: all 0.2s;
+}
+.tool-icon-btn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+
+.send-gradient-btn {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--purple));
+  border: none;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+.send-gradient-btn:hover { transform: scale(1.05); }
+
+.copilot-disclaimer {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 10px;
+}
+
+/* 4. DASHBOARD TAB VIEWS (Overview, Deep Analysis) */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 18px;
+  margin-bottom: 28px;
+}
+.ocard {
+  background: var(--card-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.ocard:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.ocard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.ocard.revenue::before { background: linear-gradient(90deg, var(--green), #2ecc71); }
+.ocard.expense::before { background: linear-gradient(90deg, var(--red), #e74c3c); }
+.ocard.profit::before { background: linear-gradient(90deg, var(--blue), #3498db); }
+.ocard.debt::before { background: linear-gradient(90deg, var(--yellow), #f39c12); }
+.ocard .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 8px; }
+.ocard .value { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+.ocard .change { font-size: 13px; display: flex; align-items: center; gap: 4px; }
+.ocard .change.up { color: var(--green); }
+.ocard .change.down { color: var(--red); }
+.ocard .sub { font-size: 12.5px; color: var(--text-muted); margin-top: 10px; }
+
+.chart-container {
+  background: var(--card-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.chart-container h3 {
+  font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 18px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.chart-wrapper.tall { height: 380px; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes dotPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <!-- 1. LEFT VERTICAL SIDEBAR NAVIGATION (Strictly 3 Items) -->
+  <aside class="app-sidebar">
+    <div>
+      <div class="brand-section">
+        <div class="brand-title">AI <span>Property</span></div>
+        <div class="status-badge">
+          <span class="pulse-dot-green"></span> MySQL Live Engine
+        </div>
+      </div>
+
+      <div class="nav-group-title">HỆ THỐNG QUẢN TRỊ</div>
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="copilot">
+          <span class="icon">🤖</span> Trợ lý AI Copilot
+        </button>
+        <button class="nav-item" data-tab="overview">
+          <span class="icon">🏠</span> Tổng quan KPI
+        </button>
+        <button class="nav-item" data-tab="deep-analysis">
+          <span class="icon">📊</span> Báo cáo tài chính
+        </button>
+      </nav>
+    </div>
+
+    <!-- Sidebar Bottom Promo Card -->
+    <div class="sidebar-promo">
+      <h4>Trợ lý AI Copilot</h4>
+      <p>Đặt câu hỏi, truy vấn 61 bảng CSDL và nhận chiến lược vận hành.</p>
+      <button class="sidebar-promo-btn" onclick="startNewChat()">
+        <span>+</span> Cuộc trò chuyện mới ✨
+      </button>
+    </div>
+  </aside>
+
+  <!-- 2. MAIN WORKSPACE AREA -->
+  <main class="app-main">
+    
+    <!-- Top Executive Header -->
+    <header class="top-header">
+      <div class="header-title-box">
+        <h2 id="pageTitle">🤖 Trợ lý AI Copilot</h2>
+        <p id="pageSubTitle">Trò chuyện với AI để phân tích dữ liệu và nhận thông tin chuyên sâu</p>
+      </div>
+
+      <div class="header-actions">
+        <select id="periodSelect" class="header-select" onchange="changePeriod()"></select>
+        <select id="landlordSelect" class="header-select" onchange="changeLandlord()">
+          <option value="1">🏠 Hải Đăng Properties</option>
+        </select>
+        <button class="header-btn primary" onclick="refreshAll()">⚡ Làm mới số liệu</button>
+      </div>
+    </header>
+
+    <!-- Workspace Body -->
+    <div class="workspace-body">
+
+      <!-- ============================================================ -->
+      <!-- TAB 1: DEDICATED AI COPILOT WORKSPACE (#tab-copilot) -->
+      <!-- ============================================================ -->
+      <div class="tab-content active" id="tab-copilot">
+        <div class="copilot-workspace">
+          
+          <!-- Full Width Chat Workspace Panel -->
+          <div class="copilot-main-panel">
+            
+            <!-- Chat Messages Feed -->
+            <div class="copilot-feed" id="copilotFeed">
+              
+              <!-- Clean AI Welcome Bubble -->
+              <div class="copilot-bubble ai">
+                <div class="avatar ai-av">🤖</div>
+                <div class="bubble-content">
+                  <div class="msg-header">
+                    <span class="name">AI Copilot</span>
+                    <span class="msg-status-tag">✔ Sẵn sàng hỗ trợ</span>
+                  </div>
+                  <div>Xin chào! Tôi là AI Property Advisor. Tôi có thể truy vấn CSDL 61 bảng MySQL live, chạy Code Interpreter tính toán công thức đại số và sinh báo cáo vận hành nhà trọ. Hãy nhập câu hỏi của bạn bên dưới! 🚀</div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Bottom Floating Input Area -->
+            <div class="copilot-input-area">
+              <div class="input-box-wrapper">
+                <textarea id="copilotInput" placeholder="Nhập câu hỏi tài chính / vận hành nhà trọ của bạn..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendCopilotMsg();}"></textarea>
+                
+                <div class="input-sub-bar">
+                  <div class="input-tools">
+                    <button class="tool-icon-btn" onclick="selectPresetQuestion('Cho biết tổng doanh thu, chi phí và lợi nhuận ròng thực tế của kỳ 2026-07?')">📊 Chọn dữ liệu</button>
+                    <button class="tool-icon-btn" onclick="selectPresetQuestion('Dùng Code Interpreter tính dự báo tổng doanh thu 3 tháng tới nếu doanh thu mỗi tháng tăng 5% từ 6M VNĐ?')">🧮 Code Interpreter</button>
+                  </div>
+
+                  <button class="send-gradient-btn" onclick="sendCopilotMsg()" title="Gửi câu hỏi">✈</button>
+                </div>
+              </div>
+              <div class="copilot-disclaimer">AI Property Advisor truy vấn CSDL 61 bảng MySQL live. Vui lòng kiểm tra lại số liệu trước khi ra quyết định đầu tư.</div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- TAB 2: OVERVIEW KPI DASHBOARD (#tab-overview) -->
+      <!-- ============================================================ -->
+      <div class="tab-content" id="tab-overview">
+        <div class="overview-grid">
+          <div class="ocard revenue"><div class="label">DOANH THU</div><div class="value" id="revValue">--</div><div class="change" id="revChange"></div><div class="sub" id="revSub"></div></div>
+          <div class="ocard expense"><div class="label">CHI PHÍ</div><div class="value" id="expValue">--</div><div class="change" id="expChange"></div><div class="sub" id="expSub"></div></div>
+          <div class="ocard profit"><div class="label">LỢI NHUẬN RÒNG</div><div class="value" id="profitValue">--</div><div class="change" id="profitChange"></div><div class="sub" id="profitSub"></div></div>
+          <div class="ocard debt"><div class="label">CÔNG NỢ</div><div class="value" id="debtValue">--</div><div class="change" id="debtChange"></div><div class="sub" id="debtSub"></div></div>
+        </div>
+
+        <div class="chart-container">
+          <h3>📈 Doanh thu & Chi phí 12 tháng</h3>
+          <div class="chart-wrapper tall"><canvas id="overviewChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- TAB 3: DEEP EXECUTIVE FINANCIAL REPORT (#tab-deep-analysis) -->
+      <!-- ============================================================ -->
+      <div class="tab-content" id="tab-deep-analysis">
+        <div class="chart-container">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px">
+            <h3 style="margin-bottom:0">📊 Báo Cáo Tài Chính & Vận Hành Chuyên Sâu</h3>
+            <div id="deepReportStatusBadge"></div>
+          </div>
+
+          <div id="deepReportBody" style="font-size:14px;line-height:1.75;color:var(--text)">Đang kết nối Harness Agentic Loop sinh báo cáo thực tế từ CSDL 61 bảng...</div>
+          <div class="copilot-action-bar" style="margin-top:20px">
+            <button class="action-btn" onclick="exportWordReport()">📄 Xuất file Word (.docx)</button>
+            <button class="action-btn" id="deepReportRefreshBtn" onclick="loadDeepReport(true)">🔄 Cập nhật số liệu tính đến hiện tại</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<script>
+// === GLOBAL STATE ===
+let currentLandlord = 1;
+let currentPeriod = '2026-07';
+let sessionId = null;
+let charts = {};
+
+// === INIT ===
+function init() {
+  populatePeriods();
+  setupSidebarNavigation();
+  currentPeriod = document.getElementById('periodSelect').value;
+  loadAllData();
+}
+
+function populatePeriods() {
+  const sel = document.getElementById('periodSelect');
+  const months = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+  const now = new Date();
+  let y = now.getFullYear();
+  let m = now.getMonth() + 1;
+  if (m === 0) { m = 12; y--; }
+  for (let i = 0; i < 12; i++) {
+    const opt = document.createElement('option');
+    opt.value = `${y}-${months[m-1]}`;
+    opt.textContent = `Kỳ ${months[m-1]}/${y}`;
+    if (i === 0) opt.selected = true;
+    sel.appendChild(opt);
+    m--;
+    if (m === 0) { m = 12; y--; }
+  }
+}
+
+function setupSidebarNavigation() {
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetTab = btn.dataset.tab;
+      if (!targetTab) return;
+
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      const targetContent = document.getElementById('tab-' + targetTab);
+      if (targetContent) targetContent.classList.add('active');
+
+      const titleMap = {
+        'copilot': ['🤖 Trợ lý AI Copilot', 'Trò chuyện với AI để phân tích dữ liệu và nhận thông tin chuyên sâu'],
+        'overview': ['🏠 Tổng quan KPI', 'Báo cáo chỉ số kinh doanh tổng quan kỳ ' + currentPeriod],
+        'deep-analysis': ['📊 Báo cáo tài chính', 'Báo cáo chẩn đoán quản trị chuyên sâu từ Harness Agent']
+      };
+      if (titleMap[targetTab]) {
+        document.getElementById('pageTitle').textContent = titleMap[targetTab][0];
+        document.getElementById('pageSubTitle').textContent = titleMap[targetTab][1];
+      }
+
+      if (targetTab === 'deep-analysis') loadDeepReport();
+    });
+  });
+}
+
+function changePeriod() {
+  currentPeriod = document.getElementById('periodSelect').value;
+  loadAllData();
+  const activeTab = document.querySelector('.nav-item.active')?.dataset.tab;
+  if (activeTab === 'deep-analysis') loadDeepReport();
+}
+
+function changeLandlord() {
+  currentLandlord = parseInt(document.getElementById('landlordSelect').value) || 1;
+  sessionId = null;
+  loadAllData();
+}
+
+function refreshAll() {
+  loadAllData();
+  const activeTab = document.querySelector('.nav-item.active')?.dataset.tab;
+  if (activeTab === 'deep-analysis') loadDeepReport(true);
+}
+
+// === API CALLS ===
+function buildUrl(path) {
+  const qs = `landlord_id=${currentLandlord}&period=${currentPeriod}`;
+  return path.includes('?') ? `${path}${qs}` : `${path}?${qs}`;
+}
+
+async function apiGet(path) {
+  try { const res = await fetch(buildUrl(path)); return await res.json(); }
+  catch(e) { console.error('API Error:', e); return null; }
+}
+
+async function apiPost(path, body) {
+  try {
+    const res = await fetch(buildUrl(path), {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body),
+    });
+    return await res.json();
+  } catch(e) { console.error('API Error:', e); return null; }
+}
+
+async function loadAllData() {
+  const res = await apiGet('/api/v1/advisor/kpi/overview');
+  if (res?.data) {
+    const d = res.data;
+    const fmt = (v) => (v >= 1e6 ? (v/1e6).toFixed(1)+' tr' : (v/1e3).toFixed(0)+' k');
+    document.getElementById('revValue').textContent = fmt(d.revenue.total);
+    document.getElementById('expValue').textContent = fmt(d.expense.total);
+    document.getElementById('profitValue').textContent = fmt(d.profit.net);
+    document.getElementById('debtValue').textContent = fmt(d.debt.overdue_amount);
+  }
+}
+
+async function loadDeepReport(force = false) {
+  const bodyEl = document.getElementById('deepReportBody');
+  const actionBtn = document.getElementById('deepReportRefreshBtn');
+  const badgeEl = document.getElementById('deepReportStatusBadge');
+
+  const now = new Date();
+  const currentPeriodStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  const isCurrentPeriod = (currentPeriod === currentPeriodStr);
+
+  if (badgeEl) {
+    if (isCurrentPeriod) {
+      const todayStr = now.toLocaleDateString('vi-VN');
+      badgeEl.innerHTML = `<span style="padding:4px 12px;border-radius:16px;background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);font-size:11.5px;font-weight:700">⚡ BÁO CÁO TÍNH ĐẾN HIỆN TẠI (${todayStr})</span>`;
+      if (actionBtn) actionBtn.innerHTML = '🔄 Cập nhật số liệu tính đến hiện tại';
+    } else {
+      badgeEl.innerHTML = `<span style="padding:4px 12px;border-radius:16px;background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.3);font-size:11.5px;font-weight:700">🔒 BÁO CÁO ĐÃ CHỐT SỔ (LƯU VĨNH VIỄN)</span>`;
+      if (actionBtn) actionBtn.innerHTML = '🔄 Tải lại bản báo cáo đã lưu';
+    }
+  }
+
+  bodyEl.textContent = '⏳ Đang kết nối Harness Agentic Loop sinh báo cáo thực tế từ CSDL 61 bảng...';
+  const url = force ? '/api/v1/advisor/copilot/report/refresh' : '/api/v1/advisor/copilot/report';
+  const res = await apiPost(url, {});
+  if (res?.data?.report) {
+    bodyEl.innerHTML = formatMarkdown(res.data.report);
+  } else {
+    bodyEl.textContent = 'Không thể tải báo cáo. Vui lòng thử lại sau.';
+  }
+}
+
+// === COPILOT CHAT LOGIC ===
+let isSendingCopilotMsg = false;
+let askedQuestionsInSession = new Set();
+
+async function sendCopilotMsg() {
+  if (isSendingCopilotMsg) return;
+
+  const input = document.getElementById('copilotInput');
+  const question = input.value.trim();
+  if (!question) return;
+
+  isSendingCopilotMsg = true;
+  askedQuestionsInSession.add(question.toLowerCase().trim());
+  input.value = '';
+  input.disabled = true;
+
+  const feed = document.getElementById('copilotFeed');
+
+  const userHtml = `
+    <div class="copilot-bubble user">
+      <div class="avatar user-av">HD</div>
+      <div class="bubble-content">
+        <div class="msg-header"><span class="name">Bạn</span><span>Vừa xong</span></div>
+        <div>${escapeHtml(question)}</div>
+      </div>
+    </div>`;
+  feed.innerHTML += userHtml;
+
+  const thinkingId = 'think-' + Date.now();
+  feed.innerHTML += `
+    <div class="copilot-bubble ai" id="${thinkingId}">
+      <div class="avatar ai-av">🤖</div>
+      <div class="bubble-content">
+        <div class="msg-header"><span class="name">AI Copilot</span><span class="msg-status-tag">⚡ Đang suy luận...</span></div>
+        <div style="font-size:12.5px;color:var(--text-muted)">Đang truy vấn CSDL 61 bảng MySQL & chạy Code Interpreter...</div>
+      </div>
+    </div>`;
+  feed.scrollTop = feed.scrollHeight;
+
+  try {
+    const res = await apiPost('/api/v1/advisor/copilot/ask', { question, session_id: sessionId });
+
+    const thinkingEl = document.getElementById(thinkingId);
+    if (thinkingEl) thinkingEl.remove();
+
+    if (res?.status === 'success' && res.data?.reply) {
+      if (res.data.session_id) sessionId = res.data.session_id;
+      const formatted = formatMarkdown(res.data.reply);
+
+      // Render Dynamic Non-Repeating Follow-up Chips
+      const rawSuggestions = res.data?.suggestions || [];
+      const filteredSuggestions = rawSuggestions.filter(s => {
+        const norm = s.toLowerCase().trim();
+        for (let asked of askedQuestionsInSession) {
+          if (norm.includes(asked) || asked.includes(norm)) return false;
+        }
+        return true;
+      });
+
+      let suggestionsHtml = '';
+      if (filteredSuggestions.length > 0) {
+        suggestionsHtml = `
+          <div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--border)">
+            <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.6px">
+              💡 GỢI Ý CÂU HỎI TIẾP THEO DÀNH CHO BẠN:
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              ${filteredSuggestions.slice(0, 3).map(s => `
+                <button class="chip-btn" onclick="selectPresetQuestion('${escapeHtml(s).replace(/'/g, "\\'")}')">👉 ${escapeHtml(s)}</button>
+              `).join('')}
+            </div>
+          </div>`;
+      }
+
+      const aiHtml = `
+        <div class="copilot-bubble ai">
+          <div class="avatar ai-av">🤖</div>
+          <div class="bubble-content">
+            <div class="msg-header">
+              <span class="name">AI Copilot</span>
+              <span class="msg-status-tag">✔ Hoàn thành</span>
+            </div>
+            <div>${formatted}</div>
+            ${suggestionsHtml}
+          </div>
+        </div>`;
+      feed.innerHTML += aiHtml;
+    } else {
+      feed.innerHTML += `
+        <div class="copilot-bubble ai">
+          <div class="avatar ai-av">🤖</div>
+          <div class="bubble-content" style="color:var(--red)">⚠️ Lỗi hệ thống. Vui lòng thử lại sau!</div>
+        </div>`;
+    }
+  } catch (err) {
+    console.error("sendCopilotMsg error:", err);
+    const thinkingEl = document.getElementById(thinkingId);
+    if (thinkingEl) thinkingEl.remove();
+  } finally {
+    isSendingCopilotMsg = false;
+    input.disabled = false;
+    input.focus();
+    feed.scrollTop = feed.scrollHeight;
+  }
+}
+
+function selectPresetQuestion(text) {
+  document.getElementById('copilotInput').value = text;
+  sendCopilotMsg();
+}
+
+function startNewChat() {
+  sessionId = 'sess-' + Date.now();
+  askedQuestionsInSession.clear();
+  document.getElementById('copilotFeed').innerHTML = `
+    <div class="copilot-bubble ai">
+      <div class="avatar ai-av">🤖</div>
+      <div class="bubble-content">
+        <div class="msg-header"><span class="name">AI Copilot</span><span class="msg-status-tag">✔ Phiên mới đã khởi tạo</span></div>
+        <div>Xin chào! Cuộc trò chuyện mới đã tạo thành công. Bạn muốn hỏi gì về số liệu kinh doanh nhà trọ hôm nay? 🚀</div>
+      </div>
+    </div>`;
+}
+
+function exportWordReport() {
+  window.open(`/api/v1/advisor/copilot/report/export-docx?landlord_id=${currentLandlord}&period=${currentPeriod}`, '_blank');
+}
+
+async function sendZaloAutoDirectly() {
+  const msgs = document.querySelectorAll('.copilot-bubble.ai .bubble-content');
+  if (!msgs.length) return;
+  let text = msgs[msgs.length - 1].innerText || msgs[msgs.length - 1].textContent || '';
+  text = text.replace(/Copy|Xuất Word|GỬI ZALO|💡 GỢI Ý CÂU HỎI TIẾP THEO.*/gs, '').trim();
+
+  const res = await apiPost('/api/v1/advisor/copilot/send-zalo', {
+    message: text,
+    recipient_phone: '0988.123.456'
+  });
+
+  if (res?.status === 'success') {
+    alert(`📲 TỰ ĐỘNG BẮN ZALO THÀNH CÔNG!\n\n- Kênh phát: Zalo OA Enterprise Webhook\n- SĐT Chủ nhà nhận: ${res.data.recipient_phone}\n- Thời gian thực: ${res.data.timestamp}\n\nNội dung Báo cáo / Tin nhắn đã được gửi trực tiếp đến ứng dụng Zalo của Chủ nhà! 🚀`);
+  } else {
+    alert('⚠️ Không thể tự động gửi Zalo. Vui lòng thử lại!');
+  }
+}
+
+function copyZaloMsg() {
+  const msgs = document.querySelectorAll('.copilot-bubble.ai .bubble-content');
+  if (!msgs.length) return;
+  let text = msgs[msgs.length - 1].innerText || msgs[msgs.length - 1].textContent || '';
+  // Clean markdown code blocks or excess headers for Zalo
+  text = text.replace(/Copy|Xuất Word|GỬI ZALO|💡 GỢI Ý CÂU HỎI TIẾP THEO.*/gs, '').trim();
+  navigator.clipboard.writeText(text).then(() => alert('📱 Đã sao chép tin nhắn chuẩn Zalo! Bạn có thể dán (Ctrl+V) gửi ngay cho Chủ nhà.'));
+}
+
+function copyLastAiMsg() {
+  const msgs = document.querySelectorAll('.copilot-bubble.ai .bubble-content');
+  if (!msgs.length) return;
+  const text = msgs[msgs.length - 1].textContent || '';
+  navigator.clipboard.writeText(text).then(() => alert('✅ Đã sao chép!'));
+}
+
+function formatMarkdown(text) {
+  if (!text) return '';
+  let cleanText = text
+    .replace(/\(CHAIN-OF-THOUGHT\)/gi, '')
+    .replace(/\$([^\$]+)\$/g, (m, g) => g.replace(/\\text\{([^}]+)\}/g, '$1'))
+    .replace(/([📍💰📐✨🔒📞🌟])\s*/g, '\n$1 ');
+  if (typeof marked !== 'undefined') {
+    try { return marked.parse(cleanText); } catch(e) {}
+  }
+  return escapeHtml(cleanText).replace(/\n/g, '<br>');
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
