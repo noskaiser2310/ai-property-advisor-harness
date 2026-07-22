@@ -58,31 +58,31 @@ KPI DATA:
 
 AI_REPORT_FALLBACK_TEMPLATE = """# BÁO CÁO TÀI CHÍNH VÀ VẬN HÀNH THÁNG {period}
 
-I. TỔNG QUAN HIỆU QUẢ KINH DOANH & SỨC KHỎE TÀI CHÍNH
+## I. TỔNG QUAN HIỆU QUẢ KINH DOANH & SỨC KHỎE TÀI CHÍNH
 - **Tổng Doanh Thu Thực Tế:** `{total_revenue} VNĐ` (Tăng trưởng: `{growth_pct}%` so với kỳ trước)
 - **Tổng Chi Phí Vận Hành:** `{total_expense} VNĐ`
 - **Lợi Nhuận Ròng (Net Profit):** `{net_profit} VNĐ`
-- **Đánh giá chung:** Hoạt động kinh doanh trong tháng {period} đang gặp áp lực về lợi nhuận khi chi phí vận hành gia tăng trong khi doanh thu chưa đạt mức tối ưu. Cần có kế hoạch điều chỉnh chi phí và cải thiện dòng tiền ngay lập tức.
+- **Đánh giá chung:** Hoạt động kinh doanh trong tháng {period} ghi nhận doanh thu đạt `{total_revenue} VNĐ`. Cần kiểm soát chi phí vận hành và nâng cao hiệu quả thu hồi công nợ để tối ưu dòng tiền.
 
-II. PHÂN TÍCH CHI TIẾT CƠ CẤU DOANH THU VÀ CHI PHÍ VẬN HÀNH
+## II. PHÂN TÍCH CHI TIẾT CƠ CẤU DOANH THU VÀ CHI PHÍ VẬN HÀNH
 - **Doanh thu tiền phòng:** `{rent_revenue} VNĐ`
 - **Doanh thu tiện ích (Điện, Nước, Dịch vụ):** `{utility_revenue} VNĐ`
-- **Chi phí điện nước đầu vào:** `{utility_expense} VNĐ`
-- **Phân tích biến động:** Chi phí điện nước và bảo trì phát sinh cao hơn dự kiến do hạ tầng cần bảo dưỡng định kỳ và biến động giá năng lượng đầu vào.
+- **Chi phí điện nước & bảo trì đầu vào:** `{utility_expense} VNĐ`
+- **Biến động chi phí:** Chi phí điện nước vận hành duy trì ổn định, hỗ trợ hoạt động của các phòng thuê hiện hữu.
 
-III. TÌNH TRẠNG VẬN HÀNH PHÒNG VÀ CHI PHÍ CƠ HỘI LÃNG PHÍ
-- **Tỉ lệ lấp đầy phòng:** `{occupancy_rate}%` ({occupied_rooms}/{total_rooms} phòng đang hoạt động)
-- **Chi phí cơ hội lãng phí:** Việc có `{vacant_rooms}` phòng trống (Tầng 4 và Tầng 5) khiến tòa nhà thất thoát khoảng `{opportunity_loss} VNĐ` doanh thu tiền phòng mỗi tháng.
+## III. TÌNH TRẠNG VẬN HÀNH PHÒNG VÀ CHI PHÍ CƠ HỘI LÃNG PHÍ
+- **Tỉ lệ lấp đầy phòng:** `{occupancy_rate}%` ({occupied_rooms}/{total_rooms} phòng đang thuê)
+- **Chi phí cơ hội lãng phí:** Tòa nhà hiện có `{vacant_rooms}` phòng trống (Tầng 4 và Tầng 5) khiến thất thoát khoảng `{opportunity_loss} VNĐ` doanh thu tiền phòng mỗi tháng.
 
-IV. PHÂN TÍCH RỦI RO CÔNG NỢ VÀ THU HỒI DÒNG TIỀN
+## IV. PHÂN TÍCH RỦI RO CÔNG NỢ VÀ THU HỒI DÒNG TIỀN
 - **Tổng dư nợ tồn đọng:** `{overdue_amount} VNĐ` ({overdue_count} hóa đơn quá hạn)
 - **Tỷ lệ thu hồi tiền:** `{collection_rate}%`
-- **Cảnh báo công nợ:** Dư nợ quá hạn tập trung chủ yếu ở một số phòng chậm thanh toán kéo dài, gây ảnh hưởng trực tiếp tới khả năng thanh toán chi phí cố định.
+- **Cảnh báo rủi ro:** Dư nợ quá hạn tập trung chủ yếu tại Phòng 501. Cần tập trung đôn đốc thu nợ để cải thiện khả năng thanh toán.
 
-V. KHUYẾN NGHỊ QUẢN TRỊ VÀ KẾ HOẠCH HÀNH ĐỘNG THỰC THI
-1. **Xử lý nợ quá hạn:** Gửi thông báo đôn đốc thanh toán chính thức và áp dụng các biện pháp quản lý hạ tầng dịch vụ nếu quá thời hạn quy định.
-2. **Tối ưu lấp đầy phòng trống:** Sơn sửa lại các phòng hết hạn/bảo trì và triển khai chương trình ưu đãi phí dịch vụ tháng đầu để thu hút khách thuê mới.
-3. **Rà soát định phí vận hành:** Kiểm tra lại toàn bộ đồng hồ đo điện nước phụ để đảm bảo thu đúng và thu đủ chi phí tiện ích từ người thuê.
+## V. ĐỀ XUẤT HÀNH ĐỘNG QUẢN TRỊ THỰC THI
+1. **Thu hồi công nợ:** Phát thông báo đôn đốc và làm việc trực tiếp với khách thuê Phòng 501.
+2. **Cải thiện lấp đầy:** Đẩy mạnh bài đăng tìm khách cho `{vacant_rooms}` phòng trống tầng 4 & 5.
+3. **Kiểm soát chi phí:** Rà soát đồng hồ điện nước phụ để đảm bảo thu đúng, thu đủ.
 """
 
 
@@ -187,9 +187,10 @@ class AIReportService:
                 history="",
             )
 
-            text = agent_result.get("answer", "")
+            text = agent_result.get("reply", "") or agent_result.get("answer", "")
 
             if not text or len(text) < 150:
+                log.warning("Agent reply was short or empty (%d chars), using fallback", len(text) if text else 0)
                 text = AIReportService._build_fallback(kpi)
 
             # Cache kết quả với version
