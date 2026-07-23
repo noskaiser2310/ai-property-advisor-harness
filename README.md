@@ -218,38 +218,17 @@ Truy cập UI tại `http://localhost:8000/ui` và API docs tại `http://localh
 
 ## API Endpoints
 
-### KPI Analytics
-
-| Method | Path | Mô tả |
-|--------|------|-------|
-| `GET` | `/api/v1/advisor/kpi/overview` | Tổng quan toàn bộ KPI |
-| `GET` | `/api/v1/advisor/kpi/revenue` | Chi tiết doanh thu + lịch sử 12 tháng |
-| `GET` | `/api/v1/advisor/kpi/expense` | Chi tiết chi phí + lịch sử 12 tháng |
-| `GET` | `/api/v1/advisor/kpi/debt` | Công nợ aging, theo phòng, cảnh báo |
-| `GET` | `/api/v1/advisor/kpi/occupancy` | Tỷ lệ lấp đầy + lịch sử |
-| `GET` | `/api/v1/advisor/kpi/export` | Xuất JSON hoặc Excel (.xlsx) |
-
-### AI Copilot
+### AI Copilot Core API
 
 | Method | Path | Mô tả |
 |--------|------|-------|
 | `POST` | `/api/v1/advisor/copilot/ask` | Hỏi đáp AI multi-turn (có tool execution) |
 | `POST` | `/api/v1/advisor/copilot/report` | Sinh báo cáo tài chính AI |
 | `POST` | `/api/v1/advisor/copilot/report/refresh` | Xoá cache và sinh lại báo cáo |
-| `GET` | `/api/v1/advisor/copilot/report/export-docx` | Tải báo cáo dạng DOCX |
 | `POST` | `/api/v1/advisor/copilot/session` | Tạo session mới |
 | `GET` | `/api/v1/advisor/copilot/session/{id}` | Lấy lịch sử hội thoại |
 | `GET` | `/api/v1/advisor/copilot/suggestions` | Gợi ý câu hỏi tiếp theo |
 | `GET` | `/api/v1/advisor/copilot/analysis` | Phát hiện biến động KPI (proactive) |
-| `POST` | `/api/v1/advisor/copilot/send-zalo` | Gửi tin nhắn qua Zalo OA |
-
-### Monitoring
-
-| Method | Path | Mô tả |
-|--------|------|-------|
-| `GET` | `/api/v1/advisor/copilot/eval` | Chất lượng AI (accuracy, latency, etc.) |
-| `GET` | `/api/v1/advisor/copilot/sql-cache/stats` | SQL cache hit/miss stats |
-| `GET` | `/health` | Health check |
 
 
 ---
