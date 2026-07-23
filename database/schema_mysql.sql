@@ -3,6 +3,10 @@
 -- Based on SE Group's V19 seed data structure
 -- ============================================================
 
+DROP DATABASE IF EXISTS hdbhms;
+CREATE DATABASE hdbhms DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE hdbhms;
+
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -170,6 +174,7 @@ CREATE TABLE rooms (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
+    UNIQUE KEY uk_rooms_prop_code (property_id, room_code),
     INDEX idx_rooms_property (property_id),
     INDEX idx_rooms_status (current_status),
     INDEX idx_rooms_code (room_code),
@@ -202,6 +207,7 @@ CREATE TABLE room_assets (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
+    UNIQUE KEY uk_assets_room_name (room_id, asset_name),
     INDEX idx_assets_room (room_id),
     FOREIGN KEY (room_id) REFERENCES rooms(room_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -217,6 +223,7 @@ CREATE TABLE tenants (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME NULL,
+    UNIQUE KEY uk_tenants_user_prop (user_id, property_id),
     INDEX idx_tenants_user (user_id),
     INDEX idx_tenants_property (property_id),
     INDEX idx_tenants_deleted (deleted_at),
