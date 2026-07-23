@@ -182,7 +182,7 @@ Hãy suy luận và sử dụng các Tool cần thiết để thu thập số li
 
                 resp_content = {"result": tool_result_str}
                 if step >= 3:
-                    resp_content["instruction"] = "Dữ liệu CSDL đã được thu thập đủ. Vui lòng tổng hợp và trả lời trực tiếp cho người dùng ngay trong lượt này, không gọi thêm tool."
+                    resp_content["instruction"] = "Nếu kết quả dữ liệu CSDL đã ĐỦ THÔNG TIN để giải đáp trọn vẹn câu hỏi của người dùng, hãy tổng hợp và trả lời trực tiếp ngay trong lượt này. Nếu vẫn thiếu thông tin, hãy tiếp tục gọi công cụ để lấy thêm."
 
                 messages.append(
                     types.Content(
