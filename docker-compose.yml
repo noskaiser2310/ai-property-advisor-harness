@@ -7,7 +7,7 @@ services:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: hdbhms
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database/schema_mysql.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
@@ -22,14 +22,12 @@ services:
     build: .
     container_name: ai_property_advisor_app
     restart: always
+    env_file:
+      - .env
     ports:
-      - "8000:8000"
+      - "8080:8000"
     environment:
       - DATABASE_URL=mysql://root:password@mysql:3306/hdbhms
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-${GEMINI_API_KEY}}
-      - GEMINI_API_KEY=${GOOGLE_API_KEY:-${GEMINI_API_KEY}}
-      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.5-flash-lite}
-      - GEMINI_FALLBACK_MODEL=${GEMINI_FALLBACK_MODEL:-gemini-3.1-flash-lite}
     depends_on:
       mysql:
         condition: service_healthy
