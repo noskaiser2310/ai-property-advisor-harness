@@ -10,7 +10,7 @@ import sys
 import subprocess
 
 OUTPUT_SQL = "seed_monthly_temp.sql"
-MYSQL_CMD = 'docker exec -i mysql8 mysql -uroot -ppassword hdbhms'
+MYSQL_CMD = 'docker exec -i hdbhms_mysql mysql -uroot -ppassword hdbhms'
 
 
 def add(lines, text):
@@ -21,21 +21,23 @@ def generate_sql():
     lines = []
 
     # SET variables
-    add(lines, "SET @pid := (SELECT property_id FROM hdbhms.properties WHERE property_code='HAI_DANG_1' LIMIT 1);")
-    add(lines, "SET @r503 := (SELECT room_id FROM hdbhms.rooms WHERE property_id=@pid AND room_code='503' AND deleted_at IS NULL LIMIT 1);")
-    add(lines, "SET @r404 := (SELECT room_id FROM hdbhms.rooms WHERE property_id=@pid AND room_code='404' AND deleted_at IS NULL LIMIT 1);")
-    add(lines, "SET @r501 := (SELECT room_id FROM hdbhms.rooms WHERE property_id=@pid AND room_code='501' AND deleted_at IS NULL LIMIT 1);")
+    add(lines, "SET @pid := COALESCE((SELECT property_id FROM hdbhms.properties WHERE property_code='HAI_DANG_1' LIMIT 1), 1);")
+    add(lines, "SET @r503 := COALESCE((SELECT room_id FROM hdbhms.rooms WHERE property_id=@pid AND room_code='503' AND deleted_at IS NULL LIMIT 1), 11);")
+    add(lines, "SET @r404 := COALESCE((SELECT room_id FROM hdbhms.rooms WHERE property_id=@pid AND room_code='404' AND deleted_at IS NULL LIMIT 1), 4);")
+    add(lines, "SET @r405 := COALESCE((SELECT room_id FROM hdbhms.rooms WHERE property_id=@pid AND room_code='405' AND deleted_at IS NULL LIMIT 1), 5);")
+    add(lines, "SET @r501 := COALESCE((SELECT room_id FROM hdbhms.rooms WHERE property_id=@pid AND room_code='501' AND deleted_at IS NULL LIMIT 1), 9);")
     add(lines, "SET @c503 := (SELECT lease_contract_id FROM hdbhms.lease_contracts WHERE contract_code='DEMO-LEASE-503-ACTIVE' LIMIT 1);")
     add(lines, "SET @c404 := (SELECT lease_contract_id FROM hdbhms.lease_contracts WHERE contract_code='DEMO-LEASE-404-ACTIVE' LIMIT 1);")
+    add(lines, "SET @c405 := (SELECT lease_contract_id FROM hdbhms.lease_contracts WHERE contract_code='DEMO-LEASE-405-ACTIVE' LIMIT 1);")
     add(lines, "SET @c501 := (SELECT lease_contract_id FROM hdbhms.lease_contracts WHERE contract_code='DEMO-LEASE-501-ACTIVE' LIMIT 1);")
-    add(lines, "SET @ra := (SELECT collection_account_id FROM hdbhms.collection_accounts WHERE account_number='190368040401' LIMIT 1);")
-    add(lines, "SET @ua := (SELECT collection_account_id FROM hdbhms.collection_accounts WHERE account_number='1029995501' LIMIT 1);")
+    add(lines, "SET @ra := COALESCE((SELECT collection_account_id FROM hdbhms.collection_accounts WHERE account_number='190368040401' LIMIT 1), 1);")
+    add(lines, "SET @ua := COALESCE((SELECT collection_account_id FROM hdbhms.collection_accounts WHERE account_number='1029995501' LIMIT 1), 2);")
     add(lines, "SET @mg := (SELECT user_id FROM hdbhms.users WHERE email='demo.manager@hdbhms.local' LIMIT 1);")
     add(lines, "")
 
-    # Generate 12 months: 2025-07 to 2026-06
+    # Generate 13 months: 2025-07 to 2026-07
     months = []
-    for i in range(12):
+    for i in range(13):
         y = 2025 + (7 + i - 1) // 12
         m = (7 + i - 1) % 12 + 1
         months.append((y, m))
@@ -66,12 +68,12 @@ def generate_sql():
         add(lines, "")
 
     # ================================================================
-    # ROOM 404: Monthly rent (2025-09 to 2026-04, 8 months)
+    # ROOM 404: Monthly rent (2025-09 to 2026-07)
     # ================================================================
-    add(lines, "-- ROOM 404: Monthly rent (8 months: 2025-09 to 2026-04, 2,450,000 VND each)")
+    add(lines, "-- ROOM 404: Monthly rent (2025-09 to 2026-07, 2,450,000 VND each)")
     for idx, (y, m) in enumerate(months):
         ym = f"{y}-{m:02d}"
-        if ym < "2025-09" or ym > "2026-04":
+        if ym < "2025-09":
             continue
 
         inv_code = f"DEMO-INV-404-{ym}-RENT"
@@ -89,6 +91,34 @@ def generate_sql():
 
         add(lines, f"INSERT IGNORE INTO hdbhms.payment_allocations (payment_transaction_id, invoice_id, amount, allocated_by, allocated_at)")
         add(lines, f"SELECT pt.payment_transaction_id, i.invoice_id, 2450000, @mg, '{pay_time}'")
+        add(lines, f"FROM hdbhms.payment_transactions pt, hdbhms.invoices i")
+        add(lines, f"WHERE pt.provider_transaction_id='{tx_code}' AND i.invoice_code='{inv_code}' LIMIT 1;")
+        add(lines, "")
+
+    # ================================================================
+    # ROOM 405: Monthly rent (2026-01 to 2026-07)
+    # ================================================================
+    add(lines, "-- ROOM 405: Monthly rent (2026-01 to 2026-07, 2,550,000 VND each)")
+    for idx, (y, m) in enumerate(months):
+        ym = f"{y}-{m:02d}"
+        if ym < "2026-01":
+            continue
+
+        inv_code = f"DEMO-INV-405-{ym}-RENT"
+        tx_code = f"BANK-P405-{ym}-RENT"
+        pay_time = f"{y}-{m:02d}-02 09:00:00"
+
+        add(lines, f"INSERT IGNORE INTO hdbhms.invoices (invoice_code, property_id, room_id, lease_contract_id, invoice_type, revision_no, billing_period, issue_date, due_date, status, subtotal_amount, total_amount, paid_amount, remaining_amount, collection_account_id, created_by, created_at, updated_at)")
+        add(lines, f"VALUES ('{inv_code}', @pid, @r405, @c405, 'RENT', 1, '{ym}', '{y}-{m:02d}-01 08:00:00', '{y}-{m:02d}-15 23:59:59', 'PAID', 2550000, 2550000, 2550000, 0, @ra, @mg, '{y}-{m:02d}-01 08:00:00', '{pay_time}');")
+
+        add(lines, f"INSERT IGNORE INTO hdbhms.invoice_lines (invoice_id, line_type, description, quantity, unit_price, created_at)")
+        add(lines, f"SELECT invoice_id, 'ROOM_RENT', 'Tien phong 405 thang {ym}', 1, 2550000, '{y}-{m:02d}-01 08:00:00' FROM hdbhms.invoices WHERE invoice_code='{inv_code}' LIMIT 1;")
+
+        add(lines, f"INSERT IGNORE INTO hdbhms.payment_transactions (provider, provider_transaction_id, collection_account_id, amount, transaction_time, payer_name, payer_account, content, status, created_at)")
+        add(lines, f"VALUES ('BANK', '{tx_code}', @ra, 2550000, '{pay_time}', 'Nguyen Minh Khoa', '9704364050505001', 'TIEN PHONG P405 {ym}', 'ALLOCATED', '{pay_time}');")
+
+        add(lines, f"INSERT IGNORE INTO hdbhms.payment_allocations (payment_transaction_id, invoice_id, amount, allocated_by, allocated_at)")
+        add(lines, f"SELECT pt.payment_transaction_id, i.invoice_id, 2550000, @mg, '{pay_time}'")
         add(lines, f"FROM hdbhms.payment_transactions pt, hdbhms.invoices i")
         add(lines, f"WHERE pt.provider_transaction_id='{tx_code}' AND i.invoice_code='{inv_code}' LIMIT 1;")
         add(lines, "")

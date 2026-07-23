@@ -1,10 +1,34 @@
--- ============================================================
--- Comprehensive Seed Data for AI Property Advisor
--- No IF statements — uses WHERE NOT EXISTS / INSERT IGNORE
--- Target: MySQL 8.0 (Docker)
--- ============================================================
+-- Pre-seed: Create base data required by V19 seed
+-- Property HAI_DANG_1 + 15 rooms + base OWNER user
+
+INSERT INTO hdbhms.properties (property_code, name, address_street, address_ward, address_district, address_city, property_type, total_floors, total_rooms, status, created_at)
+VALUES ('HAI_DANG_1', 'Chung cư mini Hải Đăng', 'Số 1 Ngõ 9 Hoàng Quốc Việt', 'Nghĩa Đô', 'Cầu Giấy', 'Hà Nội', 'APARTMENT', 5, 15, 'ACTIVE', '2024-01-01 08:00:00')
+ON DUPLICATE KEY UPDATE name=name;
 
 SET @property_id := (SELECT property_id FROM hdbhms.properties WHERE property_code='HAI_DANG_1' LIMIT 1);
+
+-- Insert 15 rooms (401-408, 501-507)
+INSERT IGNORE INTO hdbhms.rooms (property_id, room_code, room_type, base_price, deposit_amount, area_sqm, capacity, current_status, internal_note, has_air_conditioner, has_water_heater, has_furniture, has_private_bathroom, has_balcony, has_kitchen, created_at)
+VALUES
+(@property_id, '401', 'STANDARD', 2500000, 2500000, 22, 2, 'VACANT', 'Phòng tầng 4', TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, '2024-01-01 08:00:00'),
+(@property_id, '402', 'STANDARD', 2600000, 2600000, 24, 2, 'VACANT', 'Phòng tầng 4', TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, '2024-01-01 08:00:00'),
+(@property_id, '403', 'STANDARD', 2600000, 2600000, 23, 2, 'VACANT', 'Phòng tầng 4', TRUE, TRUE, TRUE, TRUE, FALSE, FALSE, '2024-01-01 08:00:00'),
+(@property_id, '404', 'STANDARD', 2450000, 2450000, 25, 3, 'VACANT', 'Phòng tầng 4 - 3 người', TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, '2024-01-01 08:00:00'),
+(@property_id, '405', 'STANDARD', 2550000, 2550000, 22, 2, 'VACANT', 'Phòng tầng 4', TRUE, TRUE, TRUE, TRUE, FALSE, FALSE, '2024-01-01 08:00:00'),
+(@property_id, '406', 'STANDARD', 2600000, 2600000, 24, 2, 'VACANT', 'Phòng tầng 4', TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, '2024-01-01 08:00:00'),
+(@property_id, '407', 'STANDARD', 2700000, 2700000, 26, 2, 'VACANT', 'Phòng tầng 4 - rộng', TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, '2024-01-01 08:00:00'),
+(@property_id, '408', 'STANDARD', 3000000, 3000000, 28, 2, 'VACANT', 'Phòng tầng 4 - lớn nhất', TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, '2024-01-01 08:00:00'),
+(@property_id, '501', 'STANDARD', 2600000, 2600000, 22, 2, 'VACANT', 'Phòng tầng 5', TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, '2024-01-01 08:00:00'),
+(@property_id, '502', 'STANDARD', 2600000, 2600000, 23, 2, 'VACANT', 'Phòng tầng 5', TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, '2024-01-01 08:00:00'),
+(@property_id, '503', 'STANDARD', 2400000, 2400000, 20, 2, 'VACANT', 'Phòng tầng 5 - nhỏ', TRUE, TRUE, TRUE, TRUE, FALSE, FALSE, '2024-01-01 08:00:00'),
+(@property_id, '504', 'STANDARD', 2700000, 2700000, 25, 2, 'VACANT', 'Phòng tầng 5', TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, '2024-01-01 08:00:00'),
+(@property_id, '505', 'STANDARD', 2800000, 2800000, 24, 2, 'VACANT', 'Phòng tầng 5', TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, '2024-01-01 08:00:00'),
+(@property_id, '506', 'STANDARD', 2700000, 2700000, 23, 2, 'VACANT', 'Phòng tầng 5', TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, '2024-01-01 08:00:00'),
+(@property_id, '507', 'STANDARD', 2900000, 2900000, 26, 2, 'VACANT', 'Phòng tầng 5 - Rộng, view đẹp', TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, '2024-01-01 08:00:00');
+
+-- Create a base OWNER user (required by V19 seed for existing_owner_id)
+INSERT IGNORE INTO hdbhms.users (phone, email, password_hash, role, status, email_verified, created_at, updated_at)
+VALUES ('0988000001', 'owner@hdbhms.local', '$2a$10$2Dy4Vg1B5BKuiUMPRuTAluvk/0XzLuSgLGaABFHCoWHaUfUtDFGqm', 'OWNER', 'ACTIVE', TRUE, '2024-01-01 08:00:00', '2024-01-01 08:00:00');
 
 -- ============================================================
 -- STEP 1: Update Room Statuses
