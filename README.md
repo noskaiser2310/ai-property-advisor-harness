@@ -251,23 +251,6 @@ Truy cập UI tại `http://localhost:8000/ui` và API docs tại `http://localh
 | `GET` | `/api/v1/advisor/copilot/sql-cache/stats` | SQL cache hit/miss stats |
 | `GET` | `/health` | Health check |
 
----
-
-## Testing
-
-```bash
-# Chạy toàn bộ test
-pytest
-
-# Benchmark 10 kịch bản chủ nhà E2E
-python scripts/benchmark_10_landlord_scenarios.py
-
-# Benchmark 5 kịch bản SQL phức tạp
-python scripts/benchmark_complex_queries.py
-
-# Kiểm thử audit logger & code interpreter
-python scripts/test_full_payload_audit.py
-```
 
 ---
 
