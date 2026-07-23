@@ -158,6 +158,15 @@ AND r.deleted_at IS NULL;
 -- ============================================================
 -- STEP 9: Lease Contracts
 -- ============================================================
+SET @r404 := (SELECT room_id FROM hdbhms.rooms WHERE property_id=@property_id AND room_code='404' AND deleted_at IS NULL LIMIT 1);
+SET @r405 := (SELECT room_id FROM hdbhms.rooms WHERE property_id=@property_id AND room_code='405' AND deleted_at IS NULL LIMIT 1);
+SET @r406 := (SELECT room_id FROM hdbhms.rooms WHERE property_id=@property_id AND room_code='406' AND deleted_at IS NULL LIMIT 1);
+SET @r407 := (SELECT room_id FROM hdbhms.rooms WHERE property_id=@property_id AND room_code='407' AND deleted_at IS NULL LIMIT 1);
+SET @r501 := (SELECT room_id FROM hdbhms.rooms WHERE property_id=@property_id AND room_code='501' AND deleted_at IS NULL LIMIT 1);
+SET @r502 := (SELECT room_id FROM hdbhms.rooms WHERE property_id=@property_id AND room_code='502' AND deleted_at IS NULL LIMIT 1);
+SET @r503 := (SELECT room_id FROM hdbhms.rooms WHERE property_id=@property_id AND room_code='503' AND deleted_at IS NULL LIMIT 1);
+SET @r506 := (SELECT room_id FROM hdbhms.rooms WHERE property_id=@property_id AND room_code='506' AND deleted_at IS NULL LIMIT 1);
+
 INSERT IGNORE INTO hdbhms.lease_contracts (contract_code, room_id, primary_tenant_profile_id, start_date, end_date, rent_start_date, monthly_rent, payment_cycle_months, deposit_amount, status, created_by, created_at, updated_at)
 SELECT * FROM (
     SELECT 'DEMO-LEASE-404-ACTIVE' cc, @r404 room, pp.person_profile_id pid, '2025-09-01' sd, '2027-08-31' ed, '2025-09-01' rs, 2450000 mr, 1 pcm, 2450000 da, 'ACTIVE' st, u.user_id cb, '2025-09-01 09:00:00' ca, '2025-09-01 09:00:00' ua FROM hdbhms.users u JOIN hdbhms.person_profiles pp ON pp.user_id=u.user_id WHERE u.email='demo.tenant404@hdbhms.local' AND NOT EXISTS (SELECT 1 FROM hdbhms.lease_contracts lc WHERE lc.contract_code='DEMO-LEASE-404-ACTIVE')
@@ -263,7 +272,84 @@ VALUES
 ((SELECT room_id FROM hdbhms.rooms WHERE property_id=@property_id AND room_code='406' AND deleted_at IS NULL LIMIT 1), '2026-07-10', 2600000, 400000, 0, 1, 1, 3000000, FALSE, '2026-07-10 07:00:00');
 
 -- ============================================================
--- STEP 15: Verify Results
+-- STEP 15: Tenants, Occupants & Vehicles
+-- ============================================================
+INSERT IGNORE INTO hdbhms.tenants (user_id, property_id, created_at)
+SELECT u.user_id, @property_id, NOW()
+FROM hdbhms.users u WHERE u.email LIKE 'demo.tenant%@hdbhms.local';
+
+INSERT IGNORE INTO hdbhms.identity_documents (profile_id, doc_type, doc_number, issued_date, issued_place, created_at)
+SELECT pp.person_profile_id, 'CCCD', CONCAT('001099', LPAD(pp.person_profile_id, 6, '0')), '2021-05-15', 'Cục Cảnh sát QLHC về trật tự xã hội', NOW()
+FROM hdbhms.person_profiles pp WHERE pp.email LIKE 'demo.tenant%@hdbhms.local';
+
+INSERT IGNORE INTO hdbhms.emergency_contacts (tenant_profile_id, full_name, relationship, phone, created_at)
+SELECT pp.person_profile_id, 'Trần Thị B', 'Mẹ', '0987654321', NOW()
+FROM hdbhms.person_profiles pp WHERE pp.email LIKE 'demo.tenant%@hdbhms.local';
+
+INSERT IGNORE INTO hdbhms.vehicles (profile_id, vehicle_type, license_plate, brand, color, status, created_at)
+SELECT pp.person_profile_id, 'MOTORBIKE', CONCAT('29E1-', 10000 + pp.person_profile_id), 'Honda Wave Alpha', 'Đen', 'ACTIVE', NOW()
+FROM hdbhms.person_profiles pp WHERE pp.email LIKE 'demo.tenant%@hdbhms.local';
+
+INSERT IGNORE INTO hdbhms.contract_occupants (contract_id, tenant_profile_id, occupant_role, move_in_date, status, created_at)
+SELECT lc.lease_contract_id, lc.primary_tenant_profile_id, 'PRIMARY', lc.start_date, 'ACTIVE', NOW()
+FROM hdbhms.lease_contracts lc;
+
+-- ============================================================
+-- STEP 16: Room Assets
+-- ============================================================
+INSERT IGNORE INTO hdbhms.room_assets (room_id, asset_name, asset_category, quantity, current_condition, created_at)
+SELECT r.room_id, 'Điều hòa Daikin 9000BTU', 'APPLIANCE', 1, 'GOOD', NOW()
+FROM hdbhms.rooms r WHERE r.property_id=@property_id;
+
+INSERT IGNORE INTO hdbhms.room_assets (room_id, asset_name, asset_category, quantity, current_condition, created_at)
+SELECT r.room_id, 'Bình nóng lạnh Ariston 20L', 'APPLIANCE', 1, 'GOOD', NOW()
+FROM hdbhms.rooms r WHERE r.property_id=@property_id;
+
+INSERT IGNORE INTO hdbhms.room_assets (room_id, asset_name, asset_category, quantity, current_condition, created_at)
+SELECT r.room_id, 'Giường gỗ 1m6 x 2m', 'FURNITURE', 1, 'GOOD', NOW()
+FROM hdbhms.rooms r WHERE r.property_id=@property_id;
+
+-- ============================================================
+-- STEP 17: Maintenance Tickets & Costs
+-- ============================================================
+SET @r408 := (SELECT room_id FROM hdbhms.rooms WHERE property_id=@property_id AND room_code='408' LIMIT 1);
+SET @r502 := (SELECT room_id FROM hdbhms.rooms WHERE property_id=@property_id AND room_code='502' LIMIT 1);
+
+INSERT IGNORE INTO hdbhms.maintenance_tickets (ticket_code, property_id, room_id, created_by, category, title, description, priority, status, created_at)
+VALUES ('MT-408-001', @property_id, @r408, @manager_id, 'ELECTRICAL', 'Bảo trì hệ thống điện tầng 4', 'Kiểm tra bo mạch điều hòa và tủ điện chính', 'HIGH', 'IN_PROGRESS', '2026-07-10 09:00:00');
+
+INSERT IGNORE INTO hdbhms.maintenance_tickets (ticket_code, property_id, room_id, created_by, category, title, description, priority, status, created_at)
+VALUES ('MT-502-001', @property_id, @r502, @manager_id, 'PLUMBING', 'Sửa vòi nước rò rỉ phòng 502', 'Thay thế vòi xịt vệ sinh và dây cấp nước', 'MEDIUM', 'RESOLVED', '2026-06-12 14:00:00');
+
+SET @t502 := (SELECT maintenance_ticket_id FROM hdbhms.maintenance_tickets WHERE ticket_code='MT-502-001' LIMIT 1);
+INSERT IGNORE INTO hdbhms.maintenance_costs (ticket_id, cost_type, description, amount, created_at)
+VALUES (@t502, 'REPAIR', 'Thay vòi xịt inox 304', 150000, '2026-06-12 16:00:00');
+
+INSERT IGNORE INTO hdbhms.maintenance_reviews (ticket_id, rating, comment, created_at)
+VALUES (@t502, 5, 'Sửa chữa nhanh chóng, thợ nhiệt tình', '2026-06-12 17:00:00');
+
+-- ============================================================
+-- STEP 18: Violations, Transfers, Visits & Tasks
+-- ============================================================
+INSERT IGNORE INTO hdbhms.rule_violations (property_id, room_id, contract_id, violation_date, description, fine_amount, status, created_at)
+VALUES (@property_id, @r501, @c501, '2026-06-18', 'Gây ồn ào sau 23h đêm ngày 18/06/2026', 200000, 'REPORTED', '2026-06-19 09:00:00');
+
+INSERT IGNORE INTO hdbhms.room_transfer_requests (request_code, requester_id, old_contract_id, old_room_id, target_room_id, reason, status, created_at)
+VALUES ('TR-404-407', @manager_id, @c404, @r404, (SELECT room_id FROM hdbhms.rooms WHERE property_id=@property_id AND room_code='407' LIMIT 1), 'Khách muốn chuyển sang phòng rộng hơn có ban công', 'APPROVED', '2026-07-01 10:00:00');
+
+INSERT IGNORE INTO hdbhms.visit_requests (property_id, room_id, visitor_name, visitor_phone, preferred_start, status, created_at)
+VALUES (@property_id, (SELECT room_id FROM hdbhms.rooms WHERE property_id=@property_id AND room_code='401' LIMIT 1), 'Lê Văn Hùng', '0933111222', '2026-07-25 14:30:00', 'SCHEDULED', NOW()),
+(@property_id, (SELECT room_id FROM hdbhms.rooms WHERE property_id=@property_id AND room_code='505' LIMIT 1), 'Hoàng Phương Mai', '0944222333', '2026-07-26 10:00:00', 'SCHEDULED', NOW());
+
+INSERT IGNORE INTO hdbhms.manager_tasks (title, description, assignee_id, room_id, status, due_date, created_at)
+VALUES ('Thu tiền trọ tháng 07/2026', 'Gửi thông báo và thu tiền trọ phòng 501', @manager_id, @r501, 'IN_PROGRESS', '2026-07-25', NOW()),
+('Kiểm tra định kỳ PCCC tầng 4 & 5', 'Kiểm tra bình chữa cháy và lối thoát hiểm', @manager_id, @r408, 'PENDING', '2026-07-30', NOW());
+
+INSERT IGNORE INTO hdbhms.vacancy_logs (room_id, property_id, landlord_id, vacant_from, vacancy_reason)
+VALUES ((SELECT room_id FROM hdbhms.rooms WHERE property_id=@property_id AND room_code='407' LIMIT 1), @property_id, @ow, '2026-07-05', 'Hết hạn hợp đồng bàn giao phòng');
+
+-- ============================================================
+-- STEP 19: Verify Results
 -- ============================================================
 SELECT '=== SEED COMPLETED ===' status;
 SELECT CONCAT('Rooms total: ', COUNT(*)) info FROM hdbhms.rooms WHERE property_id=@property_id AND deleted_at IS NULL;
