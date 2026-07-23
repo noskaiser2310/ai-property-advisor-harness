@@ -94,6 +94,9 @@ class RedisCache(CacheBackend):
     def __init__(self):
         self._client = None
         self._available = False
+        self._warned_get = False
+        self._warned_set = False
+        self._warned_del = False
 
     def _get_client(self):
         if self._client is None:
@@ -121,7 +124,10 @@ class RedisCache(CacheBackend):
             if val:
                 return json.loads(val)
             return None
-        except Exception:
+        except Exception as e:
+            if not self._warned_get:
+                log.warning("RedisCache get failed for key '%s': %s (suppressing further warnings)", key[:50], str(e)[:100])
+                self._warned_get = True
             return None
 
     def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
@@ -134,8 +140,10 @@ class RedisCache(CacheBackend):
                 client.setex(key, ttl, val)
             else:
                 client.set(key, val)
-        except Exception:
-            pass
+        except Exception as e:
+            if not self._warned_set:
+                log.warning("RedisCache set failed for key '%s': %s (suppressing further warnings)", key[:50], str(e)[:100])
+                self._warned_set = True
 
     def delete(self, key: str) -> None:
         client = self._get_client()
@@ -143,8 +151,10 @@ class RedisCache(CacheBackend):
             return
         try:
             client.delete(key)
-        except Exception:
-            pass
+        except Exception as e:
+            if not self._warned_del:
+                log.warning("RedisCache delete failed for key '%s': %s (suppressing further warnings)", key[:50], str(e)[:100])
+                self._warned_del = True
 
     def exists(self, key: str) -> bool:
         client = self._get_client()
@@ -152,7 +162,8 @@ class RedisCache(CacheBackend):
             return False
         try:
             return bool(client.exists(key))
-        except Exception:
+        except Exception as e:
+            log.warning("RedisCache exists failed for key '%s': %s", key[:50], str(e)[:100])
             return False
 
 

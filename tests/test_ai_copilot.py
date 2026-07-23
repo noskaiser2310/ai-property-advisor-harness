@@ -10,8 +10,8 @@ client = TestClient(app)
 
 
 class MockGeminiService:
-    model = "gemini-3.6-flash-lite"
-    fallback_model = "gemini-3.5-flash-lite"
+    model = "gemini-3.5-flash-lite"
+    fallback_model = "gemini-3.1-flash-lite"
 
     async def _call_with_retry(self, model, contents, config):
         part = MagicMock()

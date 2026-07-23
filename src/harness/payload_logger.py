@@ -61,19 +61,23 @@ class PayloadAuditLogger:
             with open(AUDIT_LOG_FILE, "a", encoding="utf-8") as f:
                 f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
-            # 2. Persist to Database table in background
-            asyncio.create_task(PayloadAuditLogger._persist_to_database(
-                session_id=session_id,
-                landlord_id=landlord_id,
-                period=period,
-                question=question,
-                system_instruction_len=len(system_instruction),
-                skills_loaded=",".join(skills_loaded),
-                method=method,
-                tools_called=json.dumps(tools_called, ensure_ascii=False),
-                reply=reply,
-                latency_ms=latency_ms
-            ))
+            # 2. Persist to Database table in background (with error callback)
+            try:
+                task = asyncio.create_task(PayloadAuditLogger._persist_to_database(
+                    session_id=session_id,
+                    landlord_id=landlord_id,
+                    period=period,
+                    question=question,
+                    system_instruction_len=len(system_instruction),
+                    skills_loaded=",".join(skills_loaded),
+                    method=method,
+                    tools_called=json.dumps(tools_called, ensure_ascii=False),
+                    reply=reply,
+                    latency_ms=latency_ms
+                ))
+                task.add_done_callback(lambda t: log.warning("DB audit persist failed: %s", t.exception()) if t.exception() else None)
+            except RuntimeError:
+                log.debug("No event loop available for DB audit persist (sync context)")
 
             log.info("Full audit payload logged to file and queued for DB persistence.")
         except Exception as e:

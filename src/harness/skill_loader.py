@@ -45,16 +45,16 @@ class SkillLoader:
 
         q_lower = question.lower()
 
-        # Keywords mapping
-        if any(k in q_lower for k in ["báo cáo", "tài chính", "doanh thu", "chi phí", "lợi nhuận", "nợ", "công nợ", "sức khỏe"]):
+        # Keywords mapping — expanded for better semantic coverage
+        if any(k in q_lower for k in ["báo cáo", "tài chính", "doanh thu", "chi phí", "lợi nhuận", "nợ", "công nợ", "sức khỏe", "dòng tiền", "tỉ suất", "biên lợi", "tăng trưởng", "thất thoát", "lãi", "lỗ", "thu nhập"]):
             if "financial_analysis" in all_skills:
                 selected_texts.append(f"--- SKILL: financial_analysis ---\n{all_skills['financial_analysis']}")
 
-        if any(k in q_lower for k in ["bài đăng", "tìm khách", "cho thuê", "viết bài", "phòng trống", "tiện ích"]):
+        if any(k in q_lower for k in ["bài đăng", "tìm khách", "cho thuê", "viết bài", "phòng trống", "tiện ích", "quảng cáo", "marketing", "đăng tin", "facebook", "zalo", "chợ tốt"]):
             if "marketing_copywriting" in all_skills:
                 selected_texts.append(f"--- SKILL: marketing_copywriting ---\n{all_skills['marketing_copywriting']}")
 
-        if any(k in q_lower for k in ["danh sách", "tra cứu", "sql", "phòng", "hóa đơn", "hợp đồng", "bảo trì"]):
+        if any(k in q_lower for k in ["danh sách", "tra cứu", "sql", "phòng", "hóa đơn", "hợp đồng", "bảo trì", "trạng thái", "chi tiết", "mã phòng", "chỉ số", "điện nước", "khách thuê", "người thuê", "liệt kê", "thống kê", "số liệu"]):
             if "sql_best_practices" in all_skills:
                 selected_texts.append(f"--- SKILL: sql_best_practices ---\n{all_skills['sql_best_practices']}")
 

@@ -19,7 +19,7 @@
 - [x] **Modern Glassmorphic Chat UI:** Tích hợp **`marked.js`** render Markdown đẹp mắt, thẻ Badge hiển thị Tool/Skill thực thi, và nút bấm `📋 Sao chép` nhanh.
 - [x] **Loại bỏ UI thừa:** Xóa bỏ hộp gợi ý tĩnh bên lề, nhúng trực tiếp nút gợi ý vào bong bóng hội thoại.
 
-### 3. Cấu Hình Model `gemini-3.6-flash-lite`
+### 3. Cấu Hình Model `gemini-3.5-flash-lite`
 - [x] Cấu hình Pydantic & `ModelRegistry` trong `config/settings.py` & `src/services/gemini_service.py`.
 
 ### 4. Ghi Vết Payload Audit Vào CSDL (`ai_audit_logs`)

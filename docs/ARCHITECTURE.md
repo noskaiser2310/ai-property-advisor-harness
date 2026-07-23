@@ -21,7 +21,7 @@ Design Pattern: **Harness Architecture (Model + Harness Environment + Dynamic Co
                                        v
                       +----------------------------------+
                       |    Native Harness Agent Loop     |
-                      |  (Model: gemini-3.6-flash-lite)  |
+                      |  (Model: gemini-3.5-flash-lite)  |
                       +----------------------------------+
                                        |
          +-----------------------------+-----------------------------+

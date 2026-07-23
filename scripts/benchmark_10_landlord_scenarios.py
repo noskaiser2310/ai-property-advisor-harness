@@ -1,6 +1,6 @@
 """
 Benchmark 10 End-to-End Landlord Scenarios Verification Suite
-Queries Ground Truth from MySQL 8.0 database (hdbhms), invokes HarnessAgentLoop with gemini-3.6-flash-lite, and verifies response accuracy.
+Queries Ground Truth from MySQL 8.0 database (hdbhms), invokes HarnessAgentLoop with gemini-3.5-flash-lite, and verifies response accuracy.
 """
 import asyncio
 import json

@@ -37,6 +37,64 @@ async def _resolve_property_id(landlord_id: int, db) -> Optional[int]:
 class AIAskService:
     """Service xử lý hỏi đáp cho Kế toán/Chủ nhà thông qua Harness Agent Loop"""
 
+    # Out-of-domain rejection patterns (câu hỏi không liên quan đến nhà trọ/tài chính)
+    # Patterns use unaccented Vietnamese for robust matching
+    OUT_OF_DOMAIN_PATTERNS = [
+        r'\b(chinh tri|bau cu|dang|cong san|ton giao|phat|chua|kito)\b',
+        r'\b(hack|crack|exploit|inject|bypass|vuot tuong lua|ma doc|virus)\b',
+        r'\b(boi toan|tu vi|phong thuy|xem tay|xem chi tay|cung|bua|ngai)\b',
+        r'\b(chat|tan gau|buon chuyen|hen ho|yeu duong|ban gai|ban trai|troi dep|hom nay|thoi tiet|hello|hi\b|xin chao|chao buoi)\b',
+        r'\b(code|viet code|lap trinh app|game|website) ((?!sql|bao cao).)*$',
+    ]
+    DOMAIN_KEYWORDS = [
+        'doanh thu', 'chi phi', 'loi nhuan', 'no', 'phong', 'hoa don',
+        'bao cao', 'kpi', 'lap day', 'khach thue', 'cho thue', 'bao tri',
+        'dien', 'nuoc', 'tien', 'hop dong', 'dong tien', 'tai chinh',
+        'suc khoe', 'thang', 'ky', 'tro', 'nha tro', 'chu nha',
+    ]
+
+    @staticmethod
+    def _strip_vietnamese_accents(text: str) -> str:
+        """Strip Vietnamese diacritics for robust accent-insensitive matching"""
+        replacements = {
+            'á': 'a', 'à': 'a', 'ả': 'a', 'ã': 'a', 'ạ': 'a',
+            'ă': 'a', 'ắ': 'a', 'ằ': 'a', 'ẳ': 'a', 'ẵ': 'a', 'ặ': 'a',
+            'â': 'a', 'ấ': 'a', 'ầ': 'a', 'ẩ': 'a', 'ẫ': 'a', 'ậ': 'a',
+            'đ': 'd', 'é': 'e', 'è': 'e', 'ẻ': 'e', 'ẽ': 'e', 'ẹ': 'e',
+            'ê': 'e', 'ế': 'e', 'ề': 'e', 'ể': 'e', 'ễ': 'e', 'ệ': 'e',
+            'í': 'i', 'ì': 'i', 'ỉ': 'i', 'ĩ': 'i', 'ị': 'i',
+            'ó': 'o', 'ò': 'o', 'ỏ': 'o', 'õ': 'o', 'ọ': 'o',
+            'ô': 'o', 'ố': 'o', 'ồ': 'o', 'ổ': 'o', 'ỗ': 'o', 'ộ': 'o',
+            'ơ': 'o', 'ớ': 'o', 'ờ': 'o', 'ở': 'o', 'ỡ': 'o', 'ợ': 'o',
+            'ú': 'u', 'ù': 'u', 'ủ': 'u', 'ũ': 'u', 'ụ': 'u',
+            'ư': 'u', 'ứ': 'u', 'ừ': 'u', 'ử': 'u', 'ữ': 'u', 'ự': 'u',
+            'ý': 'y', 'ỳ': 'y', 'ỷ': 'y', 'ỹ': 'y', 'ỵ': 'y',
+        }
+        for accented, plain in replacements.items():
+            text = text.replace(accented, plain)
+        return text
+
+    @classmethod
+    def is_out_of_domain(cls, question: str) -> bool:
+        """Check if question is outside the property management domain"""
+        import re
+        # Strip accents for robust matching (users may type unaccented Vietnamese)
+        q_normalized = cls._strip_vietnamese_accents(question.lower())
+        # Use word-boundary matching to avoid false positives (e.g. "no" matching inside "nao")
+        _domain_re = re.compile(
+            r'\b(' + '|'.join(re.escape(k) for k in cls.DOMAIN_KEYWORDS) + r')\b'
+        )
+        if _domain_re.search(q_normalized):
+            return False
+        # If matches out-of-domain pattern → reject
+        for pattern in cls.OUT_OF_DOMAIN_PATTERNS:
+            if re.search(pattern, q_normalized):
+                return True
+        # If too short and no domain keywords → likely out of domain
+        if len(question.strip()) < 2:
+            return True
+        return False
+
     @staticmethod
     async def process_question(
         question: str,
@@ -72,8 +130,24 @@ class AIAskService:
                 session_id = SessionStore.create_session(landlord_id)
             history = SessionStore.format_history_for_context(session_id)
 
-            # === STEP 1: Harness Agentic Reasoning Loop ===
+            # === STEP 1: Harness Agentic Reasoning Loop (with intent check) ===
             log.debug("process_question: starting Harness Agent Loop for '%s' (L%s, %s)", question[:50], landlord_id, period)
+            
+            # Intent check: reject out-of-domain questions
+            if AIAskService.is_out_of_domain(question):
+                eval_ctx.set_intent("OUT_OF_DOMAIN_REJECTED")
+                eval_ctx.set_reply(
+                    reply="Xin lỗi, tôi là AI Trợ lý Tài chính & Vận hành Nhà trọ. Tôi chỉ có thể trả lời các câu hỏi về doanh thu, chi phí, công nợ, tỉ lệ lấp đầy, bảo trì phòng trọ và các vấn đề vận hành nhà trọ. Vui lòng đặt câu hỏi liên quan.",
+                    model_used="intent_filter", token_count=0, from_cache=True, fallback_used=False,
+                )
+                return {
+                    "reply": "Xin lỗi, tôi là AI Trợ lý Tài chính & Vận hành Nhà trọ. Tôi chỉ có thể trả lời các câu hỏi về doanh thu, chi phí, công nợ, tỉ lệ lấp đầy, bảo trì phòng trọ và các vấn đề vận hành nhà trọ. Vui lòng đặt câu hỏi liên quan.",
+                    "session_id": session_id or SessionStore.create_session(landlord_id),
+                    "suggestions": [],
+                    "type": "OUT_OF_DOMAIN",
+                    "plan": {"method": "intent_filter_rejected"},
+                }
+            
             from src.harness.agent_loop import HarnessAgentLoop
             result = await HarnessAgentLoop.run(
                 question=question,

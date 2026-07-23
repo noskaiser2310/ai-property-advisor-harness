@@ -11,13 +11,17 @@ log = logging.getLogger("ai-property-advisor")
 class ModelRegistry:
     """
     Model Registry — Track RPM/RPD cho mỗi model.
+    
+    ⚠️ LƯU Ý MULTI-WORKER: Khi deploy với nhiều Uvicorn workers (API_WORKERS > 1),
+    mỗi worker có bộ đếm RPM/RPD riêng → tổng RPM thực tế = workers × limit.
+    Để tránh 429 từ Google API, nên: (1) dùng API_WORKERS=1, hoặc (2) dùng Redis shared counter.
     """
 
     MODELS = {
         "gemini-2.0-flash": {"rpm": 30, "tpm": 500000, "rpd": 1500, "priority": 1},
         "gemini-2.0-flash-lite": {"rpm": 30, "tpm": 500000, "rpd": 1500, "priority": 2},
-        "gemini-3.6-flash-lite": {"rpm": 30, "tpm": 500000, "rpd": 1500, "priority": 3},
-        "gemini-3.5-flash-lite": {"rpm": 30, "tpm": 500000, "rpd": 1500, "priority": 4},
+        "gemini-3.5-flash-lite": {"rpm": 30, "tpm": 500000, "rpd": 1500, "priority": 3},
+        "gemini-3.1-flash-lite": {"rpm": 30, "tpm": 500000, "rpd": 1500, "priority": 4},
     }
 
     def __init__(self):
@@ -168,7 +172,7 @@ class GeminiService:
                               model, attempt + 1, self._max_retries, wait, str(e)[:60])
                     await asyncio.sleep(wait)
 
-        # Fallback candidates (Duy trì duy nhất Gemini 3.5 Flash-Lite làm fallback chuẩn)
+        # Fallback candidates (Gemini 3.1 Flash-Lite làm fallback chuẩn)
         fallback_candidates = [self.fallback_model]
         for fb_model in fallback_candidates:
             if not fb_model or fb_model == model:

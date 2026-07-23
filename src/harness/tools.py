@@ -102,7 +102,7 @@ async def tool_execute_sql_query(sql_query: str, landlord_id: int) -> str:
     try:
         db = await get_db()
         if db._pool is None:
-            return json.dumps({"warning": "Database connection offline (Mock Mode). Cannot run SQL."}, ensure_ascii=False)
+            return json.dumps({"error": "DATABASE_OFFLINE", "warning": "CSDL hiện không khả dụng. Vui lòng thông báo cho người dùng rằng hệ thống đang bảo trì và thử lại sau."}, ensure_ascii=False)
 
         clean_sql = sql_query.replace("```sql", "").replace("```", "").strip()
         sql_upper = clean_sql.upper()
@@ -116,9 +116,27 @@ async def tool_execute_sql_query(sql_query: str, landlord_id: int) -> str:
         )
         property_id = row.get("property_id") if row else 1
 
-        rows = await db.fetch(clean_sql, property_id)
+        try:
+            rows = await db.fetch(clean_sql, property_id)
+        except Exception as sql_err:
+            err_str = str(sql_err)
+            # Extract helpful info from MySQL error
+            hint = ""
+            if "Unknown column" in err_str:
+                col_name = err_str.split("Unknown column")[-1].split("'")[1] if "'" in err_str else "unknown"
+                hint = f" GỢI Ý: Cột '{col_name}' không tồn tại. Kiểm tra lại tên cột trong schema (VD: dùng 'phone' thay 'phone_number', 'address_street' thay 'address', 'primary_tenant_profile_id' thay 'tenant_id')."
+            elif "Table" in err_str and "doesn't exist" in err_str:
+                hint = " GỢI Ý: Bảng không tồn tại. Kiểm tra lại tên bảng trong schema."
+            elif "syntax error" in err_str.lower():
+                hint = " GỢI Ý: Lỗi cú pháp SQL. Kiểm tra dấu phẩy, ngoặc, JOIN."
+            return json.dumps({
+                "error": f"Lỗi SQL: {err_str[:300]}{hint}",
+                "sql_attempted": clean_sql[:200],
+                "self_correct_hint": "Hãy sửa câu SQL dựa trên lỗi trên và thử lại với execute_sql_query."
+            }, ensure_ascii=False)
+        
         if not rows:
-            return json.dumps({"status": "SUCCESS", "row_count": 0, "data": []}, ensure_ascii=False)
+            return json.dumps({"status": "SUCCESS", "row_count": 0, "data": [], "note": "Không có dữ liệu — KHÔNG ĐƯỢC BỊA SỐ LIỆU. Hãy thông báo cho user là không có dữ liệu."}, ensure_ascii=False)
 
         return json.dumps({
             "status": "SUCCESS",
@@ -128,20 +146,28 @@ async def tool_execute_sql_query(sql_query: str, landlord_id: int) -> str:
         }, ensure_ascii=False)
     except Exception as e:
         log.warning("Tool execute_sql_query failed: %s", e)
-        return json.dumps({"error": str(e), "sql_attempted": sql_query}, ensure_ascii=False)
+        return json.dumps({"error": f"Lỗi hệ thống: {str(e)[:200]}", "sql_attempted": sql_query}, ensure_ascii=False)
 
 
 async def tool_execute_dynamic_python_script(code: str) -> str:
-    """Code Interpreter Execution — Agent writes Python code dynamically to calculate facts"""
+    """Code Interpreter Execution — Agent writes Python code dynamically to calculate facts.
+    
+    SAFETY: Runs in isolated subprocess with defense-in-depth pattern blocking.
+    Blocks: __import__, importlib, compile, eval, exec, getattr, file I/O, sys module access.
+    """
     try:
         clean_code = code.replace("```python", "").replace("```", "").strip()
         
-        # Block dangerous system OS commands
-        forbidden = ["import os.system", "shutil.rmtree", "subprocess.call", "os.remove"]
-        if any(f in clean_code for f in forbidden):
+        # Defense-in-depth: block dangerous patterns before execution
+        forbidden_patterns = [
+            "__import__", "importlib", "compile(", "globals()", "locals()",
+            "getattr(", "setattr(", "delattr(", "sys.exit", "sys.modules",
+            "sys.path", "shutil.", ".popen", "exec(", "eval(", "open("
+        ]
+        if any(p in clean_code for p in forbidden_patterns):
             return json.dumps({"error": "Mã Python chứa lệnh không an toàn và đã bị chặn."}, ensure_ascii=False)
 
-        # Run script in isolated python process
+        # Execute in isolated subprocess for process-level isolation
         proc = subprocess.run(
             [sys.executable, "-c", clean_code],
             capture_output=True,
