@@ -14,7 +14,6 @@ from database.queries.kpi_queries import (
     MONTHLY_REVENUE_QUERY, MONTHLY_EXPENSE_QUERY, MONTHLY_OCCUPANCY_QUERY
 )
 from src.engines.metrics_engine import MetricsEngine
-from src.engines.context_engine import ContextEngine
 from src.engines.kpi_repository import KPIRepository, AIReportCache
 from src.schemas.kpi_schema import (
     KPIObject, Revenue, Expense, Debt, DebtByRoom,

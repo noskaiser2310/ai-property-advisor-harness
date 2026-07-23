@@ -21,8 +21,8 @@ class Settings(BaseSettings):
     DATABASE_QUERY_TIMEOUT: int = 5
 
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-3.6-flash-lite"
-    GEMINI_FALLBACK_MODEL: str = "gemini-3.5-flash-lite"
+    GEMINI_MODEL: str = "gemini-3.5-flash-lite"
+    GEMINI_FALLBACK_MODEL: str = "gemini-3.1-flash-lite"
     GEMINI_TEMPERATURE: float = 0.0
     GEMINI_TIMEOUT: float = 120.0  # Timeout cho Gemini API calls (giây)
 

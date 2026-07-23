@@ -10,8 +10,19 @@ client = TestClient(app)
 
 
 class MockGeminiService:
+    model = "gemini-3.6-flash-lite"
+    fallback_model = "gemini-3.5-flash-lite"
+
     async def _call_with_retry(self, model, contents, config):
-        return MagicMock(text='{"reply": "Câu trả lời mẫu", "type": "REVENUE"}', candidates=None)
+        part = MagicMock()
+        part.text = "Câu trả lời mẫu từ AI Copilot."
+        part.function_call = None
+        cand = MagicMock()
+        cand.content.parts = [part]
+        resp = MagicMock()
+        resp.text = "Câu trả lời mẫu từ AI Copilot."
+        resp.candidates = [cand]
+        return resp
 
     def _safe_text(self, response):
         return response.text if hasattr(response, 'text') else ""

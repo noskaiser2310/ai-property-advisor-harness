@@ -34,11 +34,19 @@ client = TestClient(app)
 
 class MockGeminiService:
     """Mock GeminiService để test không cần API key thật"""
+    model = "gemini-3.6-flash-lite"
+    fallback_model = "gemini-3.5-flash-lite"
+
     async def _call_with_retry(self, model, contents, config):
-        return MagicMock(
-            text='{"reply": "Câu trả lời từ AI.", "type": "GENERAL"}',
-            candidates=None,
-        )
+        part = MagicMock()
+        part.text = "Báo cáo tài chính và vận hành: Doanh thu 4900000, Lợi nhuận ròng 1500000."
+        part.function_call = None
+        cand = MagicMock()
+        cand.content.parts = [part]
+        resp = MagicMock()
+        resp.text = "Báo cáo tài chính và vận hành: Doanh thu 4900000, Lợi nhuận ròng 1500000."
+        resp.candidates = [cand]
+        return resp
 
     def _safe_text(self, response):
         return response.text if hasattr(response, "text") else ""

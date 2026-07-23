@@ -14,47 +14,6 @@ from src.services.evaluation_logger import eval_logger
 
 log = logging.getLogger("ai-property-advisor")
 
-AI_REPORT_PROMPT = """Bạn là Giám đốc Tài chính & Vận hành (CFO) chuyên nghiệp quản lý chuỗi nhà trọ.
-Nhiệm vụ: Lập BÁO CÁO TÀI CHÍNH & VẬN HÀNH THÁNG chuyên sâu, phân tích nguyên nhân gốc rễ và đề xuất hành động.
-
-BẮT BUỘC TRÌNH BÀY THEO CHUẨN BÁO CÁO QUẢN TRỊ CHUYÊN NGHIỆP SAU (TUYỆT ĐỐI KHÔNG DÙNG ICON/EMOJI, KHÔNG DÙNG CÁC TỪ NHƯ CHAIN-OF-THOUGHT):
-
-# BÁO CÁO TÀI CHÍNH VÀ VẬN HÀNH DÀNH CHO CHỦ NHÀ
-
-I. TỔNG QUAN HIỆU QUẢ KINH DOANH & SỨC KHỎE TÀI CHÍNH
-- **Tổng Doanh Thu:** `XX VNĐ` (Biến động: `XX%` so với kỳ trước)
-- **Tổng Chi Phí Vận Hành:** `XX VNĐ` (Chiếm `XX%` trên tổng doanh thu)
-- **Lợi Nhuận Ròng (Net Profit):** `XX VNĐ` (Tỉ suất lợi nhuận ròng: `XX%`)
-- **Đánh giá sức khỏe tài chính:** Phân tích sâu 2-3 câu về hiệu quả tài chính tổng thể, biên lợi nhuận và mức độ an toàn dòng tiền.
-
-II. PHÂN TÍCH CHI TIẾT CƠ CẤU DOANH THU VÀ CHI PHÍ VẬN HÀNH
-- **Doanh thu tiền phòng:** `XX VNĐ` (Chiếm `XX%` tổng doanh thu)
-- **Doanh thu dịch vụ (Điện, Nước, Dịch vụ khác):** `XX VNĐ`
-- **Phân tích biến động chi phí bất thường:** Nêu rõ các khoản mục chi phí điện/nước/bảo trì phát sinh tăng giảm đột biến, phân tích nguyên nhân gốc rễ (ví dụ thất thoát điện chung, thời tiết, sự cố kỹ thuật) và mức độ ảnh hưởng trực tiếp tới dòng tiền.
-
-III. TÌNH TRẠNG VẬN HÀNH PHÒNG VÀ TÍNH TOÁN CHI PHÍ CƠ HỘI
-- **Tỉ lệ lấp đầy phòng:** `XX%` (`XX`/`XX` phòng đang ở, `XX` phòng trống)
-- **Tính toán chi phí cơ hội lãng phí:** Phân tích chi tiết số tiền doanh thu bị thất thoát mỗi tháng do `XX` phòng bỏ trống (tính toán số tiền thất thoát ước tính dựa trên giá thuê trung bình).
-
-IV. PHÂN TÍCH RỦI RO CÔNG NỢ VÀ ĐÁNH GIÁ PHÒNG NỢ XẤU
-- **Tổng dư nợ tồn đọng:** `XX VNĐ`
-- **Hóa đơn quá hạn:** `XX hóa đơn` (Tỷ lệ thu hồi tiền đạt `XX%`)
-- **Phân tích rủi ro phòng nợ xấu:** Chỉ rõ danh sách các phòng nợ đọng kéo dài, số tiền nợ cụ thể, số ngày quá hạn và mức độ rủi ro thu hồi dòng tiền.
-
-V. KHUYẾN NGHỊ QUẢN TRỊ VÀ KẾ HOẠCH HÀNH ĐỘNG THỰC THI
-- **Kế hoạch xử lý công nợ quá hạn:** Đưa ra các bước hành động cụ thể, quyết liệt đối với từng phòng nợ xấu (gửi thông báo, làm việc trực tiếp, tạm ngừng dịch vụ hoặc thanh lý hợp đồng).
-- **Kế hoạch tối ưu chi phí vận hành:** Giải pháp rà soát hạ tầng điện nước, kiểm soát thất thoát và thương lượng chi phí dịch vụ đầu vào.
-- **Kế hoạch lấp đầy phòng trống:** Chiến lược điều chỉnh giá thuê, chính sách ưu đãi hoặc đẩy mạnh các kênh tiếp thị lấp đầy phòng trống.
-
-YÊU CẦU QUAN TRỌNG:
-- Trình bày dạng Markdown công sở chính quy: Không dùng bất kỳ icon/emoji nào (như 📊, 📈, ⚠️, 💡).
-- Không sử dụng các thuật ngữ nội bộ như (CHAIN-OF-THOUGHT), (PROMPT), v.v.
-- Các con số phải chính xác 100% từ KPI DATA bên dưới và được in đậm hoặc để trong `backtick`.
-- Phân tích có chiều sâu, tính toán cụ thể chi phí cơ hội và nguyên nhân thay vì chỉ liệt kê lại số liệu.
-
-KPI DATA:
-{json_data}
-"""
 
 AI_REPORT_FALLBACK_TEMPLATE = """# BÁO CÁO TÀI CHÍNH VÀ VẬN HÀNH THÁNG {period}
 

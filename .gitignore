@@ -46,8 +46,6 @@ database/temp/
 database/*.db
 temp/
 tmp/
-.tmp/
-scripts
 # Logs & Metrics
 *.log
 logs/
