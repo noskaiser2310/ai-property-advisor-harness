@@ -11,7 +11,6 @@ Hệ thống **AI Financial Copilot** thế hệ mới dành cho quản lý nhà
 
 > 🚀 **Web App Interface:** [http://localhost:8080/ui](http://localhost:8080/ui)  
 > 📑 **API Documentation (Swagger UI):** [http://localhost:8080/docs](http://localhost:8080/docs)  
-> 📘 **Technical Deep-Dive:** [docs/TECHNICAL_REPORT.md](file:///d:/Admin_AI_for_report/ai-property-advisor-harness/docs/TECHNICAL_REPORT.md)
 
 ---
 
@@ -101,7 +100,6 @@ Hệ thống hoạt động theo mô hình **Harness Agentic Loop** với các l
 - 🤖 **AI Financial Copilot Multi-Turn:** Hỏi đáp thông minh, phân tích sâu công nợ quá hạn, tỷ lệ lấp đầy, dự báo chi phí cơ hội phòng trống.
 - ⚡ **Báo Cáo Quản Trị Tự Động:** Sinh báo cáo tài chính tháng theo chuẩn quản trị SaaS chỉ trong 2-3 giây; hỗ trợ xuất file Word (`.docx`).
 - 🛡️ **An Toàn Dữ Liệu Tuyệt Đối (Zero Hallucination):** 100% con số tài chính được lấy từ SQL / Engine tính toán thực tế.
-- 🔒 **Bảo Mật 2 Lớp (Pre/Post Security Hooks):** SQL Guard chặn các câu lệnh sửa đổi dữ liệu; PII Sanitizer bảo mật thông tin cá nhân khách thuê.
 - 🚀 **Cache Đa Tầng Thông Minh:** Hash SHA256 nhận biết thay đổi CSDL để cache KPI/Report, giúp phản hồi tức thì và tiết kiệm chi phí Gemini API.
 - 📈 **Seed Data 13 Tháng Liên Tục:** Tự động tạo dữ liệu mẫu thực tế từ tháng 07/2025 đến tháng 07/2026.
 
@@ -225,20 +223,9 @@ docker-compose restart app
 | `POST` | `/api/v1/advisor/copilot/ask` | Hỏi đáp AI đa lượt (Multi-turn Agent Loop) |
 | `POST` | `/api/v1/advisor/copilot/report` | Sinh báo cáo quản trị tài chính tự động bằng AI |
 | `POST` | `/api/v1/advisor/copilot/report/refresh` | Làm sạch Cache và bắt buộc sinh lại báo cáo mới |
-| `GET`  | `/api/v1/advisor/copilot/report/export-docx` | Xuất file báo cáo tài chính định dạng Word (`.docx`) |
 | `POST` | `/api/v1/advisor/copilot/session` | Khởi tạo phiên hội thoại mới |
 | `GET`  | `/api/v1/advisor/copilot/suggestions` | Lấy danh sách gợi ý câu hỏi phân tích thông minh |
 
-### 2. 🏠 KPI Financial Analytics API
-
-| Method | Endpoint Path | Mô Tả Tính Năng |
-|--------|---------------|-----------------|
-| `GET` | `/api/v1/advisor/kpi/overview` | Tổng quan tài chính, lấp đầy & điểm sức khỏe (Health Score) |
-| `GET` | `/api/v1/advisor/kpi/revenue` | Chi tiết doanh thu theo nguồn + lịch sử 12 tháng |
-| `GET` | `/api/v1/advisor/kpi/expense` | Chi tiết chi phí vận hành + lịch sử 12 tháng |
-| `GET` | `/api/v1/advisor/kpi/debt` | Phân tích công nợ aging, phòng nợ xấu & cảnh báo |
-| `GET` | `/api/v1/advisor/kpi/occupancy` | Phân tích tỷ lệ lấp đầy phòng + lịch sử |
-| `GET` | `/api/v1/advisor/kpi/export` | Xuất dữ liệu KPI định dạng JSON hoặc Excel (`.xlsx`) |
 
 ---
 
@@ -302,6 +289,4 @@ python scripts/test_full_payload_audit.py
 
 ## 📄 GIẤY PHÉP & TÁC GIẢ
 
-- **Phát triển bởi:** Antigravity AI Engineering Team (Google DeepMind)
 - **Giấy phép:** MIT License
-- **Tài liệu kỹ thuật chi tiết:** Xem tại [docs/TECHNICAL_REPORT.md](file:///d:/Admin_AI_for_report/ai-property-advisor-harness/docs/TECHNICAL_REPORT.md)
