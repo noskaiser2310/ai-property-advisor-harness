@@ -53,11 +53,14 @@ logs/
 .coverage
 htmlcov/
 .tox/
-
+docs/
+node_modules/
+scripts/
 # Generated Documents & Artifacts
 *.docx
 .system_generated/
 scratch/
-
+package-lock.json
+package.json
 # Docker
 .dockerignore
